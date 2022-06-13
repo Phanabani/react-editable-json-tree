@@ -16,16 +16,20 @@ import inputUsageTypes from "../enums/inputUsageType";
 /* ************************************* */
 // Prop types
 const propTypes = {
-  handleAdd: PropTypes.func.isRequired,
-  handleCancel: PropTypes.func.isRequired,
-  onlyValue: PropTypes.bool,
   addButtonElement: PropTypes.element,
   cancelButtonElement: PropTypes.element,
   inputElementGenerator: PropTypes.func.isRequired,
-  keyPath: PropTypes.array,
-  deep: PropTypes.number,
   onSubmitValueParser: PropTypes.func.isRequired,
 };
+
+interface Props {
+  keyPath?: string[];
+  deep?: number;
+  handleAdd: () => void;
+  handleCancel: () => void;
+  onlyValue?: boolean;
+}
+
 // Default props
 const defaultProps = {
   onlyValue: false,

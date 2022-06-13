@@ -9,7 +9,9 @@
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { HotKeys } from "react-hotkeys";
+import { ObjectType } from "../enums/objectType";
 import inputUsageTypes from "../types/inputUsageTypes";
+import type { JsonSimpleElementType } from "../types/JsonTypes";
 import { isComponentWillChange } from "../utils/objectTypes";
 
 /* ************************************* */
@@ -17,15 +19,7 @@ import { isComponentWillChange } from "../utils/objectTypes";
 /* ************************************* */
 // Prop types
 const propTypes = {
-  name: PropTypes.string.isRequired,
-  value: PropTypes.any.isRequired,
-  originalValue: PropTypes.any,
-  keyPath: PropTypes.array,
-  deep: PropTypes.number,
-  handleRemove: PropTypes.func,
-  handleUpdateValue: PropTypes.func,
   readOnly: PropTypes.func.isRequired,
-  dataType: PropTypes.string,
   getStyle: PropTypes.func.isRequired,
   editButtonElement: PropTypes.element,
   cancelButtonElement: PropTypes.element,
@@ -34,6 +28,18 @@ const propTypes = {
   logger: PropTypes.object.isRequired,
   onSubmitValueParser: PropTypes.func.isRequired,
 };
+
+interface Props {
+  name: string;
+  value: JsonSimpleElementType;
+  originalValue?: JsonSimpleElementType;
+  keyPath?: string[];
+  deep: number;
+  handleRemove?: () => void;
+  handleUpdateValue?: () => void;
+  dataType?: ObjectType;
+}
+
 // Default props
 const defaultProps = {
   keyPath: [],

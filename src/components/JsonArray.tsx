@@ -13,7 +13,7 @@ import {
   REMOVE_DELTA_TYPE,
   UPDATE_DELTA_TYPE,
 } from "../enums/deltaType";
-import { getObjectType } from "../enums/objectType";
+import { getObjectType, ObjectType } from "../enums/objectType";
 import JsonAddValue from "./JsonAddValue";
 import JsonNode from "./JsonNode";
 
@@ -22,16 +22,10 @@ import JsonNode from "./JsonNode";
 /* ************************************* */
 // Prop types
 const propTypes = {
-  data: PropTypes.array.isRequired,
-  name: PropTypes.string.isRequired,
   isCollapsed: PropTypes.func.isRequired,
-  keyPath: PropTypes.array,
-  deep: PropTypes.number,
-  handleRemove: PropTypes.func,
   onUpdate: PropTypes.func.isRequired,
   onDeltaUpdate: PropTypes.func.isRequired,
   readOnly: PropTypes.func.isRequired,
-  dataType: PropTypes.string,
   getStyle: PropTypes.func.isRequired,
   addButtonElement: PropTypes.element,
   cancelButtonElement: PropTypes.element,
@@ -46,6 +40,16 @@ const propTypes = {
   logger: PropTypes.object.isRequired,
   onSubmitValueParser: PropTypes.func.isRequired,
 };
+
+interface Props {
+  name: string;
+  data: JsonArray;
+  keyPath?: string[];
+  deep?: number;
+  handleRemove?: () => void;
+  dataType?: ObjectType;
+}
+
 // Default props
 const defaultProps = {
   keyPath: [],

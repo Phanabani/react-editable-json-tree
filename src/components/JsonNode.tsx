@@ -9,6 +9,7 @@ import PropTypes from "prop-types";
 /* ************************************* */
 import React, { Component } from "react";
 import { getObjectType, ObjectType as dataTypes } from "../enums/objectType";
+import type { JsonElementType } from "../types/JsonTypes";
 import JsonArray from "./JsonArray";
 import JsonFunctionValue from "./JsonFunctionValue";
 import JsonObject from "./JsonObject";
@@ -19,13 +20,7 @@ import JsonValue from "./JsonValue";
 /* ************************************* */
 // Prop types
 const propTypes = {
-  name: PropTypes.string.isRequired,
-  data: PropTypes.any,
   isCollapsed: PropTypes.func.isRequired,
-  keyPath: PropTypes.array,
-  deep: PropTypes.number,
-  handleRemove: PropTypes.func,
-  handleUpdateValue: PropTypes.func,
   onUpdate: PropTypes.func.isRequired,
   onDeltaUpdate: PropTypes.func.isRequired,
   readOnly: PropTypes.func.isRequired,
@@ -43,6 +38,16 @@ const propTypes = {
   logger: PropTypes.object.isRequired,
   onSubmitValueParser: PropTypes.func.isRequired,
 };
+
+interface Props {
+  name: string;
+  data?: JsonElementType;
+  keyPath?: string[];
+  deep?: number;
+  handleRemove?: () => void;
+  handleUpdateValue?: () => void;
+}
+
 // Default props
 const defaultProps = {
   keyPath: [],
