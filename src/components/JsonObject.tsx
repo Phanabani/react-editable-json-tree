@@ -14,6 +14,7 @@ import {
   UPDATE_DELTA_TYPE,
 } from "../enums/deltaType";
 import { getObjectType, ObjectType } from "../enums/objectType";
+import type { BaseJsonComponentProps } from "../types/BaseJsonComponentProps";
 import type { JsonObjectType } from "../types/JsonTypes";
 import JsonAddValue from "./JsonAddValue";
 import JsonNode from "./JsonNode";
@@ -42,11 +43,9 @@ const propTypes = {
   onSubmitValueParser: PropTypes.func.isRequired,
 };
 
-interface Props {
+interface Props extends BaseJsonComponentProps {
   name: string;
   data: JsonObjectType;
-  keyPath?: string[];
-  deep: number;
   handleRemove: () => void;
   dataType?: ObjectType;
 }

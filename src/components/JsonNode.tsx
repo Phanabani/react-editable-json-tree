@@ -9,6 +9,7 @@ import PropTypes from "prop-types";
 /* ************************************* */
 import React, { Component } from "react";
 import { getObjectType, ObjectType as dataTypes } from "../enums/objectType";
+import type { BaseJsonComponentProps } from "../types/BaseJsonComponentProps";
 import type { JsonElementType } from "../types/JsonTypes";
 import JsonArray from "./JsonArray";
 import JsonFunctionValue from "./JsonFunctionValue";
@@ -39,11 +40,9 @@ const propTypes = {
   onSubmitValueParser: PropTypes.func.isRequired,
 };
 
-interface Props {
+interface Props extends BaseJsonComponentProps {
   name: string;
   data?: JsonElementType;
-  keyPath?: string[];
-  deep?: number;
   handleRemove?: () => void;
   handleUpdateValue?: () => void;
 }

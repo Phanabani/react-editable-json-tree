@@ -10,6 +10,7 @@ import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { HotKeys } from "react-hotkeys";
 import { ObjectType } from "../enums/objectType";
+import type { BaseJsonComponentProps } from "../types/BaseJsonComponentProps";
 import inputUsageTypes from "../types/inputUsageTypes";
 import type { JsonSimpleElementType } from "../types/JsonTypes";
 import { isComponentWillChange } from "../utils/objectTypes";
@@ -29,12 +30,10 @@ const propTypes = {
   onSubmitValueParser: PropTypes.func.isRequired,
 };
 
-interface Props {
+interface Props extends BaseJsonComponentProps {
   name: string;
   value: JsonSimpleElementType;
   originalValue?: JsonSimpleElementType;
-  keyPath?: string[];
-  deep: number;
   handleRemove?: () => void;
   handleUpdateValue?: () => void;
   dataType?: ObjectType;
