@@ -10,7 +10,7 @@ import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { HotKeys } from "react-hotkeys";
 import inputUsageTypes from "../enums/inputUsageType";
-import type { BaseJsonComponentProps } from "../types/BaseJsonComponentProps";
+import type { PositionedPartialJsonProps } from "../types/JsonComponentProps";
 
 /* ************************************* */
 /* ********      VARIABLES      ******** */
@@ -23,7 +23,7 @@ const propTypes = {
   onSubmitValueParser: PropTypes.func.isRequired,
 };
 
-interface Props extends BaseJsonComponentProps {
+interface Props extends PositionedPartialJsonProps {
   handleAdd: () => void;
   handleCancel: () => void;
   onlyValue?: boolean;
