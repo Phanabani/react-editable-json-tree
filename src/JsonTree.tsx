@@ -3,17 +3,17 @@
  * Date: 13/10/16
  * Licence: See Readme
  */
+import PropTypes from "prop-types";
 /* ************************************* */
 /* ********       IMPORTS       ******** */
 /* ************************************* */
 import React, { Component } from "react";
-import PropTypes from "prop-types";
 import JsonNode from "./components/JsonNode";
-import { array, object, value } from "./utils/styles";
 import { DeltaType } from "./enums/deltaType";
-import { getObjectType, ObjectType } from "./enums/objectType";
 import { InputUsageType } from "./enums/inputUsageType";
+import { getObjectType, ObjectType } from "./enums/objectType";
 import parse from "./utils/parse";
+import { array, object, value } from "./utils/styles";
 
 /* ************************************* */
 /* ********      VARIABLES      ******** */
