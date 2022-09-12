@@ -10,14 +10,9 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import JsonNode from "./components/JsonNode";
 import { array, object, value } from "./utils/styles";
-import {
-  ADD_DELTA_TYPE,
-  REMOVE_DELTA_TYPE,
-  UPDATE_DELTA_TYPE,
-} from "./types/deltaTypes";
-import { getObjectType } from "./utils/objectTypes";
-import DATA_TYPES from "./types/dataTypes";
-import INPUT_USAGE_TYPES from "./types/inputUsageTypes";
+import { DeltaType } from "./enums/deltaType";
+import { getObjectType, ObjectType } from "./enums/objectType";
+import { InputUsageType } from "./enums/inputUsageType";
 import parse from "./utils/parse";
 
 /* ************************************* */
@@ -70,9 +65,7 @@ const defaultProps = {
     new Promise((resolve) => resolve()),
   beforeUpdateAction: (key, keyPath, deep, oldValue, newValue) =>
     new Promise((resolve) => resolve()),
-  logger: {
-    error: () => {},
-  },
+  logger: { error: () => {} },
   onSubmitValueParser: (isEditMode, keyPath, deep, name, rawValue) =>
     parse(rawValue),
   inputElement: (usage, keyPath, deep, keyName, data, dataType) => <input />,
@@ -84,7 +77,6 @@ const defaultProps = {
 
 /* ************************************* */
 /* ********      COMPONENT      ******** */
-
 /* ************************************* */
 class JsonTree extends Component {
   constructor(props) {
@@ -192,9 +184,4 @@ JsonTree.defaultProps = defaultProps;
 /* ************************************* */
 /* ********       EXPORTS       ******** */
 /* ************************************* */
-export { JsonTree };
-export { ADD_DELTA_TYPE };
-export { REMOVE_DELTA_TYPE };
-export { UPDATE_DELTA_TYPE };
-export { DATA_TYPES };
-export { INPUT_USAGE_TYPES };
+export { JsonTree, DeltaType, ObjectType, InputUsageType };
