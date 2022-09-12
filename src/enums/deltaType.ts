@@ -4,10 +4,8 @@
  * Licence: See Readme
  */
 
-enum DeltaType {
+export enum DeltaType {
   Add,
   Remove,
   Update,
 }
-
-export default DeltaType;
