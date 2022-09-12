@@ -12,9 +12,12 @@ import type { Data, Depth, KeyPath, TreeArgs } from "./types/JsonTree";
 import parse from "./utils/parse";
 import { array, object, value } from "./utils/styles";
 
-type ElementFactory = (
-  args: TreeArgs & { inputUsageType: InputUsageType }
-) => JSX.Element;
+type MaybeFactory<Value, Args> = Value | ((args: Args) => Value);
+
+type MaybeElementFactory = MaybeFactory<
+  JSX.Element,
+  TreeArgs & { inputUsageType: InputUsageType }
+>;
 
 type Action<T> = (
   args: Omit<TreeArgs, "dataType" | "data"> & T
@@ -27,7 +30,7 @@ interface Props {
   isCollapsed?: (args: { keyPath: KeyPath; depth: Depth }) => boolean;
   onFullyUpdate?: (args: { data: Data }) => void;
   onDeltaUpdate?: (args: TreeArgs & { oldValue: Data; newValue: Data }) => void;
-  readOnly?: boolean | ((args: TreeArgs) => boolean);
+  readOnly?: MaybeFactory<boolean, TreeArgs>;
   getStyle?: (args: TreeArgs) => React.CSSProperties;
   onSubmitValueParser?: (
     args: Omit<TreeArgs, "data" | "dataType"> & {
@@ -39,8 +42,8 @@ interface Props {
   addButtonElement?: JSX.Element;
   cancelButtonElement?: JSX.Element;
   editButtonElement?: JSX.Element;
-  inputElement?: JSX.Element | ElementFactory;
-  textareaElement?: JSX.Element | ElementFactory;
+  inputElement?: MaybeElementFactory;
+  textareaElement?: MaybeElementFactory;
   minusMenuElement?: JSX.Element;
   plusMenuElement?: JSX.Element;
 
