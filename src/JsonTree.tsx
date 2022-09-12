@@ -1,45 +1,55 @@
 /*
- * Author: Alexandre Havrileck (Oxyno-zeta)
+ * Author: Alexandre Havrileck (Oxyno-zeta), Phanabani
  * Date: 13/10/16
  * Licence: See Readme
  */
-import PropTypes from "prop-types";
-/* ************************************* */
-/* ********       IMPORTS       ******** */
-/* ************************************* */
 import React, { Component } from "react";
 import JsonNode from "./components/JsonNode";
 import { DeltaType } from "./enums/deltaType";
 import { InputUsageType } from "./enums/inputUsageType";
 import { getObjectType, ObjectType } from "./enums/objectType";
+import type { Data, Depth, KeyPath, TreeArgs } from "./types/JsonTree";
 import parse from "./utils/parse";
 import { array, object, value } from "./utils/styles";
 
-/* ************************************* */
-/* ********      VARIABLES      ******** */
-/* ************************************* */
-// Prop types
-const propTypes = {
-  data: PropTypes.any.isRequired,
-  rootName: PropTypes.string,
-  isCollapsed: PropTypes.func,
-  onFullyUpdate: PropTypes.func,
-  onDeltaUpdate: PropTypes.func,
-  readOnly: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
-  getStyle: PropTypes.func,
-  addButtonElement: PropTypes.element,
-  cancelButtonElement: PropTypes.element,
-  editButtonElement: PropTypes.element,
-  inputElement: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
-  textareaElement: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
-  minusMenuElement: PropTypes.element,
-  plusMenuElement: PropTypes.element,
-  beforeRemoveAction: PropTypes.func,
-  beforeAddAction: PropTypes.func,
-  beforeUpdateAction: PropTypes.func,
-  logger: PropTypes.object,
-  onSubmitValueParser: PropTypes.func,
-};
+type ElementFactory = (
+  args: TreeArgs & { inputUsageType: InputUsageType }
+) => JSX.Element;
+
+type Action<T> = (
+  args: Omit<TreeArgs, "dataType" | "data"> & T
+) => Promise<void>;
+
+interface Props {
+  data: Data;
+  rootName?: string;
+
+  isCollapsed?: (args: { keyPath: KeyPath; depth: Depth }) => boolean;
+  onFullyUpdate?: (args: { data: Data }) => void;
+  onDeltaUpdate?: (args: TreeArgs & { oldValue: Data; newValue: Data }) => void;
+  readOnly?: boolean | ((args: TreeArgs) => boolean);
+  getStyle?: (args: TreeArgs) => React.CSSProperties;
+  onSubmitValueParser?: (
+    args: Omit<TreeArgs, "data" | "dataType"> & {
+      isEditMode: boolean;
+      rawValue: string;
+    }
+  ) => Data;
+
+  addButtonElement?: JSX.Element;
+  cancelButtonElement?: JSX.Element;
+  editButtonElement?: JSX.Element;
+  inputElement?: JSX.Element | ElementFactory;
+  textareaElement?: JSX.Element | ElementFactory;
+  minusMenuElement?: JSX.Element;
+  plusMenuElement?: JSX.Element;
+
+  beforeRemoveAction?: Action<{ oldValue: Data }>;
+  beforeAddAction?: Action<{ newValue: Data }>;
+  beforeUpdateAction?: Action<{ oldValue: Data; newValue: Data }>;
+
+  logger?: { error: () => void };
+}
 // Default props
 const defaultProps = {
   rootName: "root",
