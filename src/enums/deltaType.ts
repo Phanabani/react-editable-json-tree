@@ -5,9 +5,9 @@
  */
 
 enum DeltaType {
-  ADD,
-  REMOVE,
-  UPDATE,
+  Add,
+  Remove,
+  Update,
 }
 
 export default DeltaType;

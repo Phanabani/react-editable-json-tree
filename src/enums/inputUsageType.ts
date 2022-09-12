@@ -5,6 +5,6 @@
  */
 
 export enum InputUsageType {
-  VALUE,
-  KEY,
+  Value,
+  Key,
 }

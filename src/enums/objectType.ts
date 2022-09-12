@@ -1,30 +1,30 @@
 export enum ObjectType {
-  UNDEFINED,
-  NULL,
-  BOOLEAN,
-  NUMBER,
-  BIGINT,
-  STRING,
-  SYMBOL,
-  FUNCTION,
-  OBJECT,
+  Undefined,
+  Null,
+  Boolean,
+  Number,
+  Bigint,
+  String,
+  Symbol,
+  Function,
+  Object,
   // Extras
-  ARRAY,
-  ITERABLE,
-  ERROR,
-  UNKNOWN,
+  Array,
+  Iterable,
+  Error,
+  Unknown,
 }
 
 const typeMap = {
-  undefined: ObjectType.UNDEFINED,
+  undefined: ObjectType.Undefined,
   // typeof null === "object"; you need to explicitly check for null
-  boolean: ObjectType.BOOLEAN,
-  number: ObjectType.NUMBER,
-  bigint: ObjectType.BIGINT,
-  string: ObjectType.STRING,
-  symbol: ObjectType.SYMBOL,
-  function: ObjectType.FUNCTION,
-  object: ObjectType.OBJECT,
+  boolean: ObjectType.Boolean,
+  number: ObjectType.Number,
+  bigint: ObjectType.Bigint,
+  string: ObjectType.String,
+  symbol: ObjectType.Symbol,
+  function: ObjectType.Function,
+  object: ObjectType.Object,
 };
 
 function isObject(obj: unknown): obj is object {
@@ -39,18 +39,18 @@ function isObject(obj: unknown): obj is object {
 export function getObjectType(obj: unknown): ObjectType {
   if (!isObject(obj)) {
     const type = typeMap[typeof obj];
-    if (type !== ObjectType.OBJECT) return type;
-    return ObjectType.UNKNOWN;
+    if (type !== ObjectType.Object) return type;
+    return ObjectType.Unknown;
   }
 
   // Handle special objects
-  if (obj === null) return ObjectType.NULL; // typeof null === "object"
-  if (obj.constructor === Error) return ObjectType.ERROR;
-  if (Array.isArray(obj)) return ObjectType.ARRAY;
+  if (obj === null) return ObjectType.Null; // typeof null === "object"
+  if (obj.constructor === Error) return ObjectType.Error;
+  if (Array.isArray(obj)) return ObjectType.Array;
   if (typeof (obj as any)[Symbol.iterator] === "function") {
-    return ObjectType.ITERABLE;
+    return ObjectType.Iterable;
   }
 
   // If none of the above passed, it's just a regular object as far as we care
-  return ObjectType.OBJECT;
+  return ObjectType.Object;
 }
