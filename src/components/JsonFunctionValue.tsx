@@ -13,6 +13,7 @@ import inputUsageTypes from "../enums/inputUsageType";
 import { ObjectType } from "../enums/objectType";
 import type { BaseJsonComponentProps } from "../types/BaseJsonComponentProps";
 import { isComponentWillChange } from "../utils/misc";
+import { functionToString } from "../utils/parse";
 
 /* ************************************* */
 /* ********      VARIABLES      ******** */
@@ -189,7 +190,7 @@ class JsonFunctionValue extends Component {
       );
       const textareaElementLayout = React.cloneElement(textareaElement, {
         ref: this.refInput,
-        defaultValue: originalValue,
+        defaultValue: functionToString(originalValue),
       });
 
       result = (
