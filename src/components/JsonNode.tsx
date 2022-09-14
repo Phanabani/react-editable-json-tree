@@ -11,6 +11,7 @@ import React, { Component } from "react";
 import { getObjectType, ObjectType as dataTypes } from "../enums/objectType";
 import type { JsonProps } from "../types/JsonComponentProps";
 import type { JsonElementType } from "../types/JsonTypes";
+import { functionToString } from "../utils/parse";
 import JsonArray from "./JsonArray";
 import JsonFunctionValue from "./JsonFunctionValue";
 import JsonObject from "./JsonObject";
@@ -313,7 +314,7 @@ class JsonNode extends Component {
         return (
           <JsonFunctionValue
             name={name}
-            value={data.toString()}
+            value={functionToString(data)}
             originalValue={data}
             keyPath={keyPath}
             deep={deep}
