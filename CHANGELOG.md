@@ -4,9 +4,10 @@
 - Rename
   - `deep` property is now `depth`
   - `onDeltaCallback`'s `type` property is now `dataType`
+  - `inputUsageType` callback property is now `jsonFieldType`
 - Create new enums
-    - `dataType` property in callback functions is now `ObjectType`
-    - `inputUsageType` property in callback functions is now `JsonFieldType`
+    - `dataType` callback property is now enum `ObjectType`
+    - `inputUsageType` callback property is now enum `JsonFieldType`
 
 ## Code
 - Update dependencies 
