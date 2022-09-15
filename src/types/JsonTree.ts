@@ -12,3 +12,10 @@ export type TreeArgs = {
   data: Data;
   dataType: ObjectType;
 };
+
+export type ValueParser = (
+  args: Omit<TreeArgs, "data" | "dataType"> & {
+    isEditMode: boolean;
+    rawValue: string;
+  }
+) => Data;
