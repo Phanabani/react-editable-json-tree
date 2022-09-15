@@ -1,3 +1,16 @@
+# 3.0.0
+## Change
+- Rename `deep` prop to `depth`
+- Make callback functions pass an object as the argument rather than multiple positional arguments
+- Rename `onDeltaCallback`'s `type` property to `dataType`
+- Make the `dataType` property in callback functions an enum `ObjectType`
+
+## Code
+- Update dependencies 
+- Use functional components 
+- Use Typescript
+- Reformat with Prettier
+
 # 2.2.2
 ## Fix
 - Add `allowFunctionEvaluation` prop to mitigate a security vulnerability
