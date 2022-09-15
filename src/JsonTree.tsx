@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import JsonNode from "./components/JsonNode";
 import * as styles from "./constants/styles";
 import { DeltaType } from "./enums/deltaType";
-import { InputUsageType } from "./enums/inputUsageType";
+import { JsonFieldType } from "./enums/jsonFieldType";
 import { getObjectType, ObjectType } from "./enums/objectType";
 import type {
   Data,
@@ -20,12 +20,14 @@ import type {
 } from "./types/JsonTree";
 import parse from "./utils/parse";
 
-// TODO rename this. input usage doesn't make sense
-type TreeArgsWithInput = TreeArgs & { inputUsageType: InputUsageType };
+type TreeArgsWithJsonFieldType = TreeArgs & { jsonFieldType: JsonFieldType };
 
 type Factory<Args, Value> = (args: Args) => Value;
 type MaybeFactory<Args, Value> = Value | Factory<Args, Value>;
-type MaybeInputElementFactory = MaybeFactory<TreeArgsWithInput, JSX.Element>;
+type MaybeInputElementFactory = MaybeFactory<
+  TreeArgsWithJsonFieldType,
+  JSX.Element
+>;
 
 type Action<T> = (
   args: Omit<TreeArgs, "dataType" | "data"> & T
@@ -150,7 +152,7 @@ function JsonTree({
   }, [readOnly]);
 
   const inputElementFunction = useMemo<
-    Factory<TreeArgsWithInput, React.ReactNode>
+    Factory<TreeArgsWithJsonFieldType, React.ReactNode>
   >(() => {
     if (typeof inputElement === "function") {
       return inputElement;
@@ -159,7 +161,7 @@ function JsonTree({
   }, [inputElement]);
 
   const textareaElementFunction = useMemo<
-    Factory<TreeArgsWithInput, React.ReactNode>
+    Factory<TreeArgsWithJsonFieldType, React.ReactNode>
   >(() => {
     if (typeof textareaElement === "function") {
       return textareaElement;
@@ -202,4 +204,4 @@ function JsonTree({
   return <div className="rejt-tree">{node}</div>;
 }
 
-export { JsonTree, DeltaType, ObjectType, InputUsageType };
+export { JsonTree, DeltaType, ObjectType, JsonFieldType };

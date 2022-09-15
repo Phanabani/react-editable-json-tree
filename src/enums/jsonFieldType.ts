@@ -4,7 +4,7 @@
  * Licence: See Readme
  */
 
-export enum InputUsageType {
+export enum JsonFieldType {
   Value,
   Key,
 }

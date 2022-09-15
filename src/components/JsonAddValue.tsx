@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 /* ************************************* */
 import React, { Component } from "react";
 import { HotKeys } from "react-hotkeys";
-import inputUsageTypes from "../enums/inputUsageType";
+import inputUsageTypes from "../enums/jsonFieldType";
 import type { PositionedPartialJsonProps } from "../types/JsonComponentProps";
 
 /* ************************************* */
