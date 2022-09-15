@@ -1,9 +1,10 @@
 # 3.0.0
 ## Change
-- Rename `deep` prop to `depth`
 - Make callback functions pass an object as the argument rather than multiple positional arguments
-- Rename `onDeltaCallback`'s `type` property to `dataType`
-- Create new enums: 
+- Rename
+  - `deep` property is now `depth`
+  - `onDeltaCallback`'s `type` property is now `dataType`
+- Create new enums
     - `dataType` property in callback functions is now `ObjectType`
     - `inputUsageType` property in callback functions is now `JsonFieldType`
 
