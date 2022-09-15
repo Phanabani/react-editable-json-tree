@@ -3,21 +3,29 @@
  * Date: 13/10/16
  * Licence: See Readme
  */
-import React, { Component } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import JsonNode from "./components/JsonNode";
+import * as styles from "./constants/styles";
 import { DeltaType } from "./enums/deltaType";
 import { InputUsageType } from "./enums/inputUsageType";
 import { getObjectType, ObjectType } from "./enums/objectType";
-import type { Data, Depth, KeyPath, TreeArgs } from "./types/JsonTree";
+import type {
+  Data,
+  Depth,
+  KeyName,
+  KeyPath,
+  TreeArgs,
+  TreeStyles,
+  ValueParser,
+} from "./types/JsonTree";
 import parse from "./utils/parse";
-import { array, object, value } from "./utils/styles";
 
-type MaybeFactory<Value, Args> = Value | ((args: Args) => Value);
+// TODO rename this. input usage doesn't make sense
+type TreeArgsWithInput = TreeArgs & { inputUsageType: InputUsageType };
 
-type MaybeElementFactory = MaybeFactory<
-  JSX.Element,
-  TreeArgs & { inputUsageType: InputUsageType }
->;
+type Factory<Args, Value> = (args: Args) => Value;
+type MaybeFactory<Args, Value> = Value | Factory<Args, Value>;
+type MaybeInputElementFactory = MaybeFactory<TreeArgsWithInput, JSX.Element>;
 
 type Action<T> = (
   args: Omit<TreeArgs, "dataType" | "data"> & T
@@ -25,26 +33,21 @@ type Action<T> = (
 
 interface Props {
   data: Data;
-  rootName?: string;
 
+  rootName?: string;
   isCollapsed?: (args: { keyPath: KeyPath; depth: Depth }) => boolean;
   onFullyUpdate?: (args: { data: Data }) => void;
   onDeltaUpdate?: (args: TreeArgs & { oldValue: Data; newValue: Data }) => void;
-  readOnly?: MaybeFactory<boolean, TreeArgs>;
-  getStyle?: (args: TreeArgs) => React.CSSProperties;
-  onSubmitValueParser?: (
-    args: Omit<TreeArgs, "data" | "dataType"> & {
-      isEditMode: boolean;
-      rawValue: string;
-    }
-  ) => Data;
+  readOnly?: MaybeFactory<TreeArgs, boolean>;
+  getStyle?: (args: TreeArgs) => TreeStyles;
+  onSubmitValueParser?: ValueParser;
   allowFunctionEvaluation: boolean;
 
   addButtonElement?: JSX.Element;
   cancelButtonElement?: JSX.Element;
   editButtonElement?: JSX.Element;
-  inputElement?: MaybeElementFactory;
-  textareaElement?: MaybeElementFactory;
+  inputElement?: MaybeInputElementFactory;
+  textareaElement?: MaybeInputElementFactory;
   minusMenuElement?: JSX.Element;
   plusMenuElement?: JSX.Element;
 
@@ -54,198 +57,149 @@ interface Props {
 
   logger?: { error: () => void };
 }
-// Default props
-const defaultProps = {
-  rootName: "root",
-  isCollapsed: (keyPath, deep) => deep !== -1,
-  getStyle: (keyName, data, keyPath, deep, dataType) => {
-    switch (dataType) {
-      case "Object":
-      case "Error":
-        return object;
-      case "Array":
-        return array;
-      default:
-        return value;
-    }
-  },
-  /* eslint-disable no-unused-vars */
-  readOnly: (keyName, data, keyPath, deep, dataType) => false,
-  onFullyUpdate: (data) => {},
-  onDeltaUpdate: ({ type, keyPath, deep, key, newValue, oldValue }) => {},
-  beforeRemoveAction: (key, keyPath, deep, oldValue) =>
-    new Promise((resolve) => resolve()),
-  beforeAddAction: (key, keyPath, deep, newValue) =>
-    new Promise((resolve) => resolve()),
-  beforeUpdateAction: (key, keyPath, deep, oldValue, newValue) =>
-    new Promise((resolve) => resolve()),
-  logger: { error: () => {} },
-  onSubmitValueParser: (isEditMode, keyPath, deep, name, rawValue) =>
-    parse(rawValue),
-  inputElement: (usage, keyPath, deep, keyName, data, dataType) => <input />,
-  textareaElement: (usage, keyPath, deep, keyName, data, dataType) => (
-    <textarea />
-  ),
-  /* eslint-enable */
-};
 
 const createParsingFunction =
-  (allowFunctionEvaluation) => (isEditMode, keyPath, deep, name, rawValue) =>
+  (allowFunctionEvaluation: boolean): ValueParser =>
+  ({ rawValue }) =>
     parse(rawValue, allowFunctionEvaluation);
 
-/* ************************************* */
-/* ********      COMPONENT      ******** */
-/* ************************************* */
-class JsonTree extends Component {
-  constructor(props) {
-    super(props);
-    let onSubmitValueParser;
-    // This WasGenerated value lets us know whether we generated the parsing
-    // function, so we can appropriately react to changes of
-    // `allowFunctionEvaluation`
-    let onSubmitValueParserWasGenerated;
-    if (props.onSubmitValueParser) {
-      onSubmitValueParser = props.onSubmitValueParser;
-      onSubmitValueParserWasGenerated = false;
+function JsonTree({
+  data: propsData,
+
+  rootName: propsRootName = "root",
+  isCollapsed = ({ depth }) => depth !== -1,
+  onFullyUpdate,
+  onDeltaUpdate,
+  readOnly = false,
+  getStyle = ({ dataType }) => {
+    switch (dataType) {
+      case ObjectType.Object:
+      case ObjectType.Error:
+        return styles.object;
+      case ObjectType.Array:
+        return styles.array;
+      default:
+        return styles.value;
+    }
+  },
+  onSubmitValueParser: propOnSubmitValueParser,
+  allowFunctionEvaluation,
+
+  addButtonElement,
+  cancelButtonElement,
+  editButtonElement,
+  inputElement = <input />,
+  textareaElement = <textarea />,
+  minusMenuElement,
+  plusMenuElement,
+
+  beforeRemoveAction,
+  beforeAddAction,
+  beforeUpdateAction,
+
+  logger,
+}: Props) {
+  // == State ==
+  const [data, setData] = useState<Data>(propsData);
+  const [rootName, setRootName] = useState<string | undefined>(propsRootName);
+  const [onSubmitValueParser, setOnSubmitValueParser] = useState<ValueParser>(
+    propOnSubmitValueParser ?? createParsingFunction(allowFunctionEvaluation)
+  );
+  const [isOnSubmitValueParserOurs, setIsOnSubmitValueParserOurs] =
+    useState<boolean>(propOnSubmitValueParser !== undefined);
+
+  // == Effects ==
+  useEffect(() => {
+    setData(propsData);
+    setRootName(propsRootName);
+  }, [propsData, propsRootName]);
+
+  // Set parsing function if it's supplied in props
+  useEffect(() => {
+    if (propOnSubmitValueParser) {
+      setOnSubmitValueParser(propOnSubmitValueParser);
+      setIsOnSubmitValueParserOurs(false);
     } else {
-      onSubmitValueParser = createParsingFunction(
-        props.allowFunctionEvaluation
-      );
-      onSubmitValueParserWasGenerated = true;
+      setIsOnSubmitValueParserOurs(true);
     }
+  }, [propOnSubmitValueParser]);
 
-    this.state = {
-      data: props.data,
-      rootName: props.rootName,
-      onSubmitValueParser,
-      onSubmitValueParserWasGenerated,
-    };
-    // Bind
-    this.onUpdate = this.onUpdate.bind(this);
+  // Create parsing function if it's not supplied in props
+  useEffect(() => {
+    if (!isOnSubmitValueParserOurs) return;
+    setOnSubmitValueParser(createParsingFunction(allowFunctionEvaluation));
+  }, [allowFunctionEvaluation, isOnSubmitValueParserOurs]);
+
+  // == Callbacks ==
+  const onUpdate = useCallback(
+    (keyName: KeyName, data_: Data) => {
+      setData(data_);
+      onFullyUpdate?.({ data: data_ });
+    },
+    [onFullyUpdate]
+  );
+
+  // == Memos ==
+  const dataType = useMemo<ObjectType>(() => getObjectType(data), [data]);
+
+  const readOnlyFunction = useMemo<(args: TreeArgs) => boolean>(() => {
+    if (typeof readOnly === "function") {
+      return readOnly;
+    }
+    return () => readOnly ?? false;
+  }, [readOnly]);
+
+  const inputElementFunction = useMemo<
+    Factory<TreeArgsWithInput, React.ReactNode>
+  >(() => {
+    if (typeof inputElement === "function") {
+      return inputElement;
+    }
+    return () => inputElement;
+  }, [inputElement]);
+
+  const textareaElementFunction = useMemo<
+    Factory<TreeArgsWithInput, React.ReactNode>
+  >(() => {
+    if (typeof textareaElement === "function") {
+      return textareaElement;
+    }
+    return () => textareaElement;
+  }, [textareaElement]);
+
+  // == Render ==
+  let node: React.ReactNode;
+  if (dataType === ObjectType.Object || dataType === ObjectType.Array) {
+    node = (
+      <JsonNode
+        data={data}
+        name={rootName}
+        collapsed={false}
+        deep={-1}
+        isCollapsed={isCollapsed}
+        onUpdate={onUpdate}
+        onDeltaUpdate={onDeltaUpdate}
+        readOnly={readOnlyFunction}
+        getStyle={getStyle}
+        addButtonElement={addButtonElement}
+        cancelButtonElement={cancelButtonElement}
+        editButtonElement={editButtonElement}
+        inputElementGenerator={inputElementFunction}
+        textareaElementGenerator={textareaElementFunction}
+        minusMenuElement={minusMenuElement}
+        plusMenuElement={plusMenuElement}
+        beforeRemoveAction={beforeRemoveAction}
+        beforeAddAction={beforeAddAction}
+        beforeUpdateAction={beforeUpdateAction}
+        logger={logger}
+        onSubmitValueParser={onSubmitValueParser}
+      />
+    );
+  } else {
+    node = "Data must be an Array or Object";
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      data: nextProps.data,
-      rootName: nextProps.rootName,
-    });
-
-    let onSubmitValueParserWasGenerated =
-      this.state.onSubmitValueParserWasGenerated;
-    if (
-      nextProps.onSubmitValueParser &&
-      nextProps.onSubmitValueParser !== this.state.onSubmitValueParser
-    ) {
-      // We just added a new submit value parser, so this is definitely
-      // not our default parser anymore
-      onSubmitValueParserWasGenerated = false;
-      this.setState({
-        onSubmitValueParser: nextProps.onSubmitValueParser,
-        onSubmitValueParserWasGenerated,
-      });
-    }
-
-    if (
-      onSubmitValueParserWasGenerated &&
-      nextProps.allowFunctionEvaluation !== this.props.allowFunctionEvaluation
-    ) {
-      // Create a new submit value parser that adheres to the new
-      // `allowFunctionEvaluation` value as long as we know the parser
-      // was generated by us
-      this.setState({
-        onSubmitValueParser: createParsingFunction(
-          nextProps.allowFunctionEvaluation
-        ),
-      });
-    }
-  }
-
-  onUpdate(key, data) {
-    this.setState({
-      data,
-    });
-    // Call on fully update
-    const { onFullyUpdate } = this.props;
-    onFullyUpdate(data);
-  }
-
-  render() {
-    const { data, rootName, onSubmitValueParser } = this.state;
-    const {
-      isCollapsed,
-      onDeltaUpdate,
-      readOnly,
-      getStyle,
-      addButtonElement,
-      cancelButtonElement,
-      editButtonElement,
-      inputElement,
-      textareaElement,
-      minusMenuElement,
-      plusMenuElement,
-      beforeRemoveAction,
-      beforeAddAction,
-      beforeUpdateAction,
-      logger,
-      onSubmitValueParser,
-    } = this.props;
-
-    // Node type
-    const dataType = getObjectType(data);
-    let node = null;
-    let readOnlyFunction = readOnly;
-    if (getObjectType(readOnly) === "Boolean") {
-      readOnlyFunction = () => readOnly;
-    }
-    let inputElementFunction = inputElement;
-    if (inputElement && getObjectType(inputElement) !== "Function") {
-      inputElementFunction = () => inputElement;
-    }
-    let textareaElementFunction = textareaElement;
-    if (textareaElement && getObjectType(textareaElement) !== "Function") {
-      textareaElementFunction = () => textareaElement;
-    }
-
-    if (dataType === "Object" || dataType === "Array") {
-      node = (
-        <JsonNode
-          data={data}
-          name={rootName}
-          collapsed={false}
-          deep={-1}
-          isCollapsed={isCollapsed}
-          onUpdate={this.onUpdate}
-          onDeltaUpdate={onDeltaUpdate}
-          readOnly={readOnlyFunction}
-          getStyle={getStyle}
-          addButtonElement={addButtonElement}
-          cancelButtonElement={cancelButtonElement}
-          editButtonElement={editButtonElement}
-          inputElementGenerator={inputElementFunction}
-          textareaElementGenerator={textareaElementFunction}
-          minusMenuElement={minusMenuElement}
-          plusMenuElement={plusMenuElement}
-          beforeRemoveAction={beforeRemoveAction}
-          beforeAddAction={beforeAddAction}
-          beforeUpdateAction={beforeUpdateAction}
-          logger={logger}
-          onSubmitValueParser={onSubmitValueParser}
-        />
-      );
-    } else {
-      node = "Data must be an Array or Object";
-    }
-
-    return <div className="rejt-tree">{node}</div>;
-  }
+  return <div className="rejt-tree">{node}</div>;
 }
 
-// Add prop types
-JsonTree.propTypes = propTypes;
-// Add default props
-JsonTree.defaultProps = defaultProps;
-
-/* ************************************* */
-/* ********       EXPORTS       ******** */
-/* ************************************* */
 export { JsonTree, DeltaType, ObjectType, InputUsageType };
