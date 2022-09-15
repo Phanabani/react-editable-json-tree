@@ -3,78 +3,67 @@
  * Date: 20/10/16
  * Licence: See Readme
  */
-/* ************************************* */
-/* ********       IMPORTS       ******** */
-/* ************************************* */
 
+import type { TreeStyles } from "../types/JsonTree";
 
-/* ************************************* */
-/* ********      VARIABLES      ******** */
-/* ************************************* */
-
-const object = {
-    minus: {
-        color: 'red',
-    },
-    plus: {
-        color: 'green',
-    },
-    collapsed: {
-        color: 'grey',
-    },
-    delimiter: {},
-    ul: {
-        padding: '0px',
-        margin: '0 0 0 25px',
-        listStyle: 'none',
-    },
-    name: {
-        color: '#2287CD',
-    },
-    addForm: {},
-};
-const array = {
-    minus: {
-        color: 'red',
-    },
-    plus: {
-        color: 'green',
-    },
-    collapsed: {
-        color: 'grey',
-    },
-    delimiter: {},
-    ul: {
-        padding: '0px',
-        margin: '0 0 0 25px',
-        listStyle: 'none',
-    },
-    name: {
-        color: '#2287CD',
-    },
-    addForm: {},
-};
-const value = {
-    minus: {
-        color: 'red',
-    },
-    editForm: {},
-    value: {
-        color: '#7bba3d',
-    },
-    li: {
-        minHeight: '22px',
-        lineHeight: '22px',
-        outline: '0px',
-    },
-    name: {
-        color: '#2287CD',
-    },
+export const object: TreeStyles = {
+  minus: {
+    color: "red",
+  },
+  plus: {
+    color: "green",
+  },
+  collapsed: {
+    color: "grey",
+  },
+  delimiter: {},
+  ul: {
+    padding: "0px",
+    margin: "0 0 0 25px",
+    listStyle: "none",
+  },
+  name: {
+    color: "#2287CD",
+  },
+  addForm: {},
 };
 
-/* ************************************* */
-/* ********       EXPORTS       ******** */
-/* ************************************* */
-export { object };
-export { array };
-export { value };
+export const array: TreeStyles = {
+  minus: {
+    color: "red",
+  },
+  plus: {
+    color: "green",
+  },
+  collapsed: {
+    color: "grey",
+  },
+  delimiter: {},
+  ul: {
+    padding: "0px",
+    margin: "0 0 0 25px",
+    listStyle: "none",
+  },
+  name: {
+    color: "#2287CD",
+  },
+  addForm: {},
+};
+
+export const value: TreeStyles = {
+  minus: {
+    color: "red",
+  },
+  editForm: {},
+  value: {
+    color: "#7bba3d",
+  },
+  li: {
+    minHeight: "22px",
+    lineHeight: "22px",
+    outline: "0px",
+  },
+  name: {
+    color: "#2287CD",
+  },
+};
