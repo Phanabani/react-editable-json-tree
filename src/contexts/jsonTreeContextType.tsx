@@ -16,7 +16,7 @@ export type TreeArgsWithJsonFieldType = TreeArgs & {
 
 export type MaybeReactNodeFactory = MaybeFactory<
   TreeArgsWithJsonFieldType,
-  JSX.Element
+  React.ReactNode
 >;
 
 type Action<T> = (
@@ -37,13 +37,13 @@ export interface JsonTreeContextType {
 
   logger?: { error: () => void };
 
-  addButtonElement?: JSX.Element;
-  cancelButtonElement?: JSX.Element;
-  editButtonElement?: JSX.Element;
+  addButtonElement?: React.ReactNode;
+  cancelButtonElement?: React.ReactNode;
+  editButtonElement?: React.ReactNode;
   inputElement?: MaybeReactNodeFactory;
   textareaElement?: MaybeReactNodeFactory;
-  minusMenuElement?: JSX.Element;
-  plusMenuElement?: JSX.Element;
+  minusMenuElement?: React.ReactNode;
+  plusMenuElement?: React.ReactNode;
 }
 
 export const JsonTreeContext = React.createContext<JsonTreeContextType>({

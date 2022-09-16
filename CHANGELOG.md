@@ -1,6 +1,7 @@
 # 3.0.0
 ## Change
 - Make callback functions pass an object as the argument rather than multiple positional arguments
+- `JsonTree`'s `-Element` properties now accept `React.ReactNode`s instead of only `JSX.Element`s
 - Rename
   - `deep` property is now `depth`
   - `onDeltaCallback`'s `type` property is now `dataType`
