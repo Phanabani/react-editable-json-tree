@@ -35,7 +35,7 @@ function JsonTree({
   allowFunctionEvaluation,
 
   isCollapsed = ({ depth }) => depth !== -1,
-  onFullyUpdate,
+  onFullyUpdate: propOnFullyUpdate,
   onDeltaUpdate,
   readOnly = false,
   getStyle = ({ dataType }) => {
@@ -97,12 +97,12 @@ function JsonTree({
   }, [allowFunctionEvaluation, isOnSubmitValueParserOurs]);
 
   // == Callbacks ==
-  const onUpdate = useCallback(
-    (keyName: KeyName, data_: Data) => {
+  const onFullyUpdate = useCallback(
+    ({ data: data_ }: { data: Data }) => {
       setData(data_);
-      onFullyUpdate?.({ data: data_ });
+      propOnFullyUpdate?.({ data: data_ });
     },
-    [onFullyUpdate]
+    [propOnFullyUpdate]
   );
 
   // == Memos ==
@@ -136,7 +136,7 @@ function JsonTree({
   const contextValue = useMemo<JsonTreeContextType>(
     () => ({
       isCollapsed,
-      onFullyUpdate: onUpdate,
+      onFullyUpdate,
       onDeltaUpdate,
       readOnly: readOnlyFunction,
       getStyle,
@@ -169,8 +169,8 @@ function JsonTree({
       logger,
       minusMenuElement,
       onDeltaUpdate,
+      onFullyUpdate,
       onSubmitValueParser,
-      onUpdate,
       plusMenuElement,
       readOnlyFunction,
       textareaElementFunction,
