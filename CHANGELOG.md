@@ -12,8 +12,7 @@
 ## Code
 - Update dependencies 
 - Use functional components 
-- Use Typescript
-- Reformat with Prettier
+- Use context instead of passing many props
 
 # 2.2.2
 ## Fix

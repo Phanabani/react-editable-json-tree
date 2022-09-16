@@ -6,58 +6,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import JsonNode from "./components/JsonNode";
 import * as styles from "./constants/styles";
+import type {
+  JsonTreeContextType,
+  TreeArgsWithJsonFieldType,
+} from "./contexts/jsonTreeContextType";
+import { JsonTreeContext } from "./contexts/jsonTreeContextType";
 import { DeltaType } from "./enums/deltaType";
 import { JsonFieldType } from "./enums/jsonFieldType";
 import { getObjectType, ObjectType } from "./enums/objectType";
-import type {
-  Data,
-  Depth,
-  KeyName,
-  KeyPath,
-  TreeArgs,
-  TreeStyles,
-  ValueParser,
-} from "./types/JsonTree";
+import type { Data, TreeArgs, ValueParser } from "./types/JsonTree";
+import type { Factory } from "./types/misc";
 import parse from "./utils/parse";
 
-type TreeArgsWithJsonFieldType = TreeArgs & { jsonFieldType: JsonFieldType };
-
-type Factory<Args, Value> = (args: Args) => Value;
-type MaybeFactory<Args, Value> = Value | Factory<Args, Value>;
-type MaybeInputElementFactory = MaybeFactory<
-  TreeArgsWithJsonFieldType,
-  JSX.Element
->;
-
-type Action<T> = (
-  args: Omit<TreeArgs, "dataType" | "data"> & T
-) => Promise<void>;
-
-interface Props {
+interface Props extends JsonTreeContextType {
   data: Data;
-
   rootName?: string;
-  isCollapsed?: (args: { keyPath: KeyPath; depth: Depth }) => boolean;
-  onFullyUpdate?: (args: { data: Data }) => void;
-  onDeltaUpdate?: (args: TreeArgs & { oldValue: Data; newValue: Data }) => void;
-  readOnly?: MaybeFactory<TreeArgs, boolean>;
-  getStyle?: (args: TreeArgs) => TreeStyles;
-  onSubmitValueParser?: ValueParser;
   allowFunctionEvaluation: boolean;
-
-  addButtonElement?: JSX.Element;
-  cancelButtonElement?: JSX.Element;
-  editButtonElement?: JSX.Element;
-  inputElement?: MaybeInputElementFactory;
-  textareaElement?: MaybeInputElementFactory;
-  minusMenuElement?: JSX.Element;
-  plusMenuElement?: JSX.Element;
-
-  beforeRemoveAction?: Action<{ oldValue: Data }>;
-  beforeAddAction?: Action<{ newValue: Data }>;
-  beforeUpdateAction?: Action<{ oldValue: Data; newValue: Data }>;
-
-  logger?: { error: () => void };
 }
 
 const createParsingFunction =
@@ -67,8 +31,9 @@ const createParsingFunction =
 
 function JsonTree({
   data: propsData,
-
   rootName: propsRootName = "root",
+  allowFunctionEvaluation,
+
   isCollapsed = ({ depth }) => depth !== -1,
   onFullyUpdate,
   onDeltaUpdate,
@@ -85,7 +50,12 @@ function JsonTree({
     }
   },
   onSubmitValueParser: propOnSubmitValueParser,
-  allowFunctionEvaluation,
+
+  beforeRemoveAction,
+  beforeAddAction,
+  beforeUpdateAction,
+
+  logger,
 
   addButtonElement,
   cancelButtonElement,
@@ -94,12 +64,6 @@ function JsonTree({
   textareaElement = <textarea />,
   minusMenuElement,
   plusMenuElement,
-
-  beforeRemoveAction,
-  beforeAddAction,
-  beforeUpdateAction,
-
-  logger,
 }: Props) {
   // == State ==
   const [data, setData] = useState<Data>(propsData);
@@ -169,39 +133,65 @@ function JsonTree({
     return () => textareaElement;
   }, [textareaElement]);
 
+  const contextValue = useMemo<JsonTreeContextType>(
+    () => ({
+      isCollapsed,
+      onFullyUpdate: onUpdate,
+      onDeltaUpdate,
+      readOnly: readOnlyFunction,
+      getStyle,
+      onSubmitValueParser,
+
+      beforeRemoveAction,
+      beforeAddAction,
+      beforeUpdateAction,
+
+      logger,
+
+      addButtonElement,
+      cancelButtonElement,
+      editButtonElement,
+      inputElement: inputElementFunction,
+      textareaElement: textareaElementFunction,
+      minusMenuElement,
+      plusMenuElement,
+    }),
+    [
+      addButtonElement,
+      beforeAddAction,
+      beforeRemoveAction,
+      beforeUpdateAction,
+      cancelButtonElement,
+      editButtonElement,
+      getStyle,
+      inputElementFunction,
+      isCollapsed,
+      logger,
+      minusMenuElement,
+      onDeltaUpdate,
+      onSubmitValueParser,
+      onUpdate,
+      plusMenuElement,
+      readOnlyFunction,
+      textareaElementFunction,
+    ]
+  );
+
   // == Render ==
   let node: React.ReactNode;
   if (dataType === ObjectType.Object || dataType === ObjectType.Array) {
-    node = (
-      <JsonNode
-        data={data}
-        name={rootName}
-        collapsed={false}
-        deep={-1}
-        isCollapsed={isCollapsed}
-        onUpdate={onUpdate}
-        onDeltaUpdate={onDeltaUpdate}
-        readOnly={readOnlyFunction}
-        getStyle={getStyle}
-        addButtonElement={addButtonElement}
-        cancelButtonElement={cancelButtonElement}
-        editButtonElement={editButtonElement}
-        inputElementGenerator={inputElementFunction}
-        textareaElementGenerator={textareaElementFunction}
-        minusMenuElement={minusMenuElement}
-        plusMenuElement={plusMenuElement}
-        beforeRemoveAction={beforeRemoveAction}
-        beforeAddAction={beforeAddAction}
-        beforeUpdateAction={beforeUpdateAction}
-        logger={logger}
-        onSubmitValueParser={onSubmitValueParser}
-      />
-    );
+    node = <JsonNode data={data} name={rootName} collapsed={false} deep={-1} />;
   } else {
     node = "Data must be an Array or Object";
   }
 
-  return <div className="rejt-tree">{node}</div>;
+  return (
+    <div className="rejt-tree">
+      <JsonTreeContext.Provider value={contextValue}>
+        {node}
+      </JsonTreeContext.Provider>
+    </div>
+  );
 }
 
 export { JsonTree, DeltaType, ObjectType, JsonFieldType };
