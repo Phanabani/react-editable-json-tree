@@ -12,6 +12,8 @@
 
 ## Code
 - Update dependencies 
+- Reformat with Prettier
+- Use Typescript
 - Use functional components 
 - Use context instead of passing many props
 
