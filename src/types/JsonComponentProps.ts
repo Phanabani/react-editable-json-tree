@@ -2,7 +2,7 @@ import type { JsonElementType } from "./JsonTypes";
 
 export interface PositionedPartialJsonProps {
   keyPath: string[];
-  deep: number;
+  depth: number;
 }
 
 export interface NamedPartialJsonProps extends PositionedPartialJsonProps {
