@@ -26,12 +26,12 @@ export function isComponentWillChange(
 }
 
 /**
- * Get a value from an argument that's either the value or a function that
- * returns the value
+ * Get the return value of {@link valueOrFn} if it's a function, otherwise just
+ * return {@link valueOrFn}
  * @param valueOrFn a value or a function to call
  * @param callArgs arguments to call {@link valueOrFn} with if it's a function
  */
-export function getValue<Value, Fn extends (...args: any[]) => any>(
+export function maybeCall<Value, Fn extends (...args: any[]) => any>(
   valueOrFn: Value | Fn,
   ...callArgs: Parameters<Fn>
 ): Value {
