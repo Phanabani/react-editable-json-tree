@@ -25,18 +25,21 @@ export function isComponentWillChange(
   );
 }
 
+type Func = (...args: any[]) => any;
+type Flatten<T> = ReturnType<Extract<T, Func>> | Exclude<T, Func>;
+
 /**
  * Get the return value of {@link valueOrFn} if it's a function, otherwise just
  * return {@link valueOrFn}
  * @param valueOrFn a value or a function to call
  * @param callArgs arguments to call {@link valueOrFn} with if it's a function
  */
-export function maybeCall<Value, Fn extends (...args: any[]) => any>(
-  valueOrFn: Value | Fn,
-  ...callArgs: Parameters<Fn>
-): Value {
+export function maybeCall<T>(
+  valueOrFn: T,
+  ...callArgs: Parameters<Extract<T, Func>>
+): Flatten<T> {
   if (valueOrFn instanceof Function) {
     return valueOrFn(...callArgs);
   }
-  return valueOrFn;
+  return valueOrFn as Exclude<T, Func>;
 }
