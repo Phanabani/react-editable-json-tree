@@ -6,14 +6,13 @@
 import React, { useMemo } from "react";
 import { getObjectType, ObjectType } from "../enums/objectType";
 import type { JsonProps } from "../types/JsonComponentProps";
-import type { JsonElementType } from "../types/JsonTypes";
 import { functionToString } from "../utils/parse";
 import JsonArray from "./JsonArray";
 import JsonFunctionValue from "./JsonFunctionValue";
 import JsonObject from "./JsonObject";
 import JsonValue from "./JsonValue";
 
-type Props = JsonProps<JsonElementType>;
+type Props = JsonProps;
 
 function JsonNode({ data, name, keyPath = [], depth = 0 }: Props) {
   // == Memos ==
