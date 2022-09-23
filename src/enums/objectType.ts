@@ -12,6 +12,7 @@ export enum ObjectType {
   Array,
   Iterable,
   Error,
+  Date,
   Unknown,
 }
 
@@ -46,6 +47,7 @@ export function getObjectType(obj: unknown): ObjectType {
   // Handle special objects
   if (obj === null) return ObjectType.Null; // typeof null === "object"
   if (obj.constructor === Error) return ObjectType.Error;
+  if (obj.constructor === Date) return ObjectType.Date;
   if (Array.isArray(obj)) return ObjectType.Array;
   if (typeof (obj as any)[Symbol.iterator] === "function") {
     return ObjectType.Iterable;
