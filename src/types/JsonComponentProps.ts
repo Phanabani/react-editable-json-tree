@@ -1,6 +1,5 @@
 import type { ObjectType } from "../enums/objectType";
-import type { Depth, KeyName, KeyPath } from "./JsonTree";
-import type { JsonElementType } from "./JsonTypes";
+import type { Data, Depth, KeyName, KeyPath } from "./JsonTree";
 
 export interface PositionedPartialJsonProps {
   keyPath: KeyPath;
@@ -11,8 +10,7 @@ export interface NamedPartialJsonProps extends PositionedPartialJsonProps {
   name: KeyName;
 }
 
-export interface JsonProps<T extends JsonElementType>
-  extends NamedPartialJsonProps {
-  data: T;
+export interface JsonProps extends NamedPartialJsonProps {
+  data: Data;
   dataType: ObjectType;
 }
