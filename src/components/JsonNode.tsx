@@ -21,16 +21,6 @@ function JsonNode({ data, name, keyPath = [], depth = 0 }: Props) {
   // == Render ==
   switch (dataType) {
     case ObjectType.Error:
-      return (
-        <JsonObject
-          name={name}
-          keyPath={keyPath}
-          depth={depth}
-          data={data}
-          dataType={dataType}
-          readOnly
-        />
-      );
     case ObjectType.Object:
       return (
         <JsonObject
@@ -39,6 +29,7 @@ function JsonNode({ data, name, keyPath = [], depth = 0 }: Props) {
           depth={depth}
           data={data}
           dataType={dataType}
+          readOnly={dataType === ObjectType.Error}
         />
       );
     case ObjectType.Array:
@@ -48,73 +39,6 @@ function JsonNode({ data, name, keyPath = [], depth = 0 }: Props) {
           keyPath={keyPath}
           depth={depth}
           data={data}
-          dataType={dataType}
-        />
-      );
-    case ObjectType.String:
-      return (
-        <JsonValue
-          name={name}
-          keyPath={keyPath}
-          depth={depth}
-          value={`"${data}"`}
-          originalValue={data}
-          dataType={dataType}
-        />
-      );
-    case ObjectType.Number:
-      return (
-        <JsonValue
-          name={name}
-          keyPath={keyPath}
-          depth={depth}
-          value={data}
-          originalValue={data}
-          dataType={dataType}
-        />
-      );
-    case ObjectType.Boolean:
-      return (
-        <JsonValue
-          name={name}
-          keyPath={keyPath}
-          depth={depth}
-          value={data ? "true" : "false"}
-          originalValue={data}
-          dataType={dataType}
-        />
-      );
-    case ObjectType.Date:
-      return (
-        <JsonValue
-          name={name}
-          keyPath={keyPath}
-          depth={depth}
-          value={data.toISOString()}
-          originalValue={data}
-          dataType={dataType}
-          readOnly
-        />
-      );
-    case ObjectType.Null:
-      return (
-        <JsonValue
-          name={name}
-          keyPath={keyPath}
-          depth={depth}
-          value="null"
-          originalValue="null"
-          dataType={dataType}
-        />
-      );
-    case ObjectType.Undefined:
-      return (
-        <JsonValue
-          name={name}
-          keyPath={keyPath}
-          depth={depth}
-          value="undefined"
-          originalValue="undefined"
           dataType={dataType}
         />
       );
@@ -129,16 +53,23 @@ function JsonNode({ data, name, keyPath = [], depth = 0 }: Props) {
           dataType={dataType}
         />
       );
+    case ObjectType.String:
+    case ObjectType.Number:
+    case ObjectType.Boolean:
+    case ObjectType.Date:
+    case ObjectType.Null:
+    case ObjectType.Undefined:
     case ObjectType.Symbol:
       return (
         <JsonValue
           name={name}
           keyPath={keyPath}
           depth={depth}
-          value={data.toString()}
-          originalValue={data}
+          data={data}
           dataType={dataType}
-          readOnly
+          readOnly={
+            dataType === ObjectType.Symbol || dataType === ObjectType.Date
+          }
         />
       );
     default:
