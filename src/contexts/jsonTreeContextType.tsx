@@ -35,7 +35,7 @@ export interface JsonTreeContextType {
   beforeAddAction?: Action<{ newValue: Data }>;
   beforeUpdateAction?: Action<{ oldValue: Data; newValue: Data }>;
 
-  logger?: { error: () => void };
+  logger?: { error: (reason: unknown) => void };
 
   addButtonElement?: React.ReactNode;
   cancelButtonElement?: React.ReactNode;
