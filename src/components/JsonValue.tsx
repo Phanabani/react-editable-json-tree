@@ -32,7 +32,6 @@ function JsonValue({
   originalData,
 }: Props) {
   // == State ==
-  const [keyPath, setKeyPath] = useState<string[]>([...propsKeyPath, name]);
   const [editEnabled, setEditEnabled] = useState<boolean>(false);
 
   // == Other hooks ==
@@ -40,6 +39,10 @@ function JsonValue({
   const treeContext = useContext(JsonTreeContext);
 
   // == Memos ==
+  const keyPath = useMemo<string[]>(
+    () => [...propsKeyPath, name],
+    [name, propsKeyPath]
+  );
   const dataString = useMemo<string>(() => objectToString(data), [data]);
 
   const style = useMemo(
@@ -165,10 +168,6 @@ function JsonValue({
   ]);
 
   // == Effects ==
-  useEffect(() => {
-    setKeyPath([...propsKeyPath, name]);
-  }, [propsKeyPath, name]);
-
   useEffect(() => {
     if (editEnabled && !isReadOnly) {
       inputRef.current?.focus();
