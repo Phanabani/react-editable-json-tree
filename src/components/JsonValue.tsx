@@ -3,250 +3,230 @@
  * Date: 18/10/16
  * Licence: See Readme
  */
-/* ************************************* */
-/* ********       IMPORTS       ******** */
-/* ************************************* */
-import PropTypes from "prop-types";
-import React, { Component } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { HotKeys } from "react-hotkeys";
-import { ObjectType } from "../enums/objectType";
-import inputUsageTypes from "../types/inputUsageTypes";
+import { JsonTreeContext } from "../contexts/jsonTreeContextType";
+import { JsonFieldType } from "../enums/jsonFieldType";
 import type { JsonProps } from "../types/JsonComponentProps";
-import type { JsonSimpleElementType } from "../types/JsonTypes";
-import { isComponentWillChange } from "../utils/objectTypes";
+import type { Data } from "../types/JsonTree";
+import { isComponentWillChange, maybeCall } from "../utils/misc";
+import { objectToString } from "../utils/objectToString";
 
-/* ************************************* */
-/* ********      VARIABLES      ******** */
-/* ************************************* */
-// Prop types
-const propTypes = {
-  readOnly: PropTypes.func.isRequired,
-  getStyle: PropTypes.func.isRequired,
-  editButtonElement: PropTypes.element,
-  cancelButtonElement: PropTypes.element,
-  inputElementGenerator: PropTypes.func.isRequired,
-  minusMenuElement: PropTypes.element,
-  logger: PropTypes.object.isRequired,
-  onSubmitValueParser: PropTypes.func.isRequired,
-};
-
-// TODO "value" field is now "data"
-interface Props extends JsonProps<JsonSimpleElementType> {
-  originalValue?: JsonSimpleElementType;
-  handleRemove?: () => void;
-  handleUpdateValue?: () => void;
-  dataType?: ObjectType;
+interface Props extends JsonProps {
+  originalData?: Data;
 }
 
-// Default props
-const defaultProps = {
-  keyPath: [],
-  deep: 0,
-  handleUpdateValue: () => Promise.resolve(),
-  editButtonElement: <button>e</button>,
-  cancelButtonElement: <button>c</button>,
-  minusMenuElement: <span> - </span>,
-};
+function JsonValue({
+  name,
+  keyPath: propsKeyPath,
+  depth,
+  data,
+  dataType,
+  originalData,
+}: Props) {
+  // == State ==
+  const [keyPath, setKeyPath] = useState<string[]>([...propsKeyPath, name]);
+  const [editEnabled, setEditEnabled] = useState<boolean>(false);
 
-/* ************************************* */
-/* ********      COMPONENT      ******** */
+  // == Other hooks ==
+  const inputRef = useRef<HTMLInputElement>();
+  const treeContext = useContext(JsonTreeContext);
 
-/* ************************************* */
-class JsonValue extends Component {
-  constructor(props) {
-    super(props);
-    const keyPath = [...props.keyPath, props.name];
-    this.state = {
-      value: props.value,
-      name: props.name,
-      keyPath,
-      deep: props.deep,
-      editEnabled: false,
-      inputRef: null,
-    };
+  // == Memos ==
+  const dataString = useMemo<string>(() => objectToString(data), [data]);
 
-    // Bind
-    this.handleEditMode = this.handleEditMode.bind(this);
-    this.refInput = this.refInput.bind(this);
-    this.handleCancelEdit = this.handleCancelEdit.bind(this);
-    this.handleEdit = this.handleEdit.bind(this);
-  }
+  const style = useMemo(
+    () =>
+      treeContext.getStyle?.({
+        keyName: name,
+        keyPath,
+        depth,
+        data: originalData,
+        dataType,
+      }),
+    [dataType, depth, keyPath, name, originalData, treeContext]
+  );
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      value: nextProps.value,
+  const isReadOnly = useMemo<boolean>(
+    () =>
+      maybeCall(treeContext.readOnly, {
+        keyName: name,
+        keyPath,
+        depth,
+        data: originalData,
+        dataType,
+      }) ?? false,
+    [dataType, depth, keyPath, name, originalData, treeContext]
+  );
+
+  // Elements
+  const minusElement = useMemo<React.ReactNode>(() => {
+    if (editEnabled && !isReadOnly) return null;
+    if (isReadOnly) return null;
+
+    const elem = treeContext.minusMenuElement;
+    if (!elem) return null;
+
+    return React.cloneElement(elem, {
+      onClick: treeContext.handleRemove,
+      className: "rejt-minus-menu",
+      style: style?.minus,
     });
-  }
+  }, [
+    editEnabled,
+    isReadOnly,
+    style?.minus,
+    treeContext.handleRemove,
+    treeContext.minusMenuElement,
+  ]);
 
-  componentDidUpdate() {
-    const { editEnabled, inputRef, name, value, keyPath, deep } = this.state;
-    const { readOnly, dataType } = this.props;
-    const readOnlyResult = readOnly(name, value, keyPath, deep, dataType);
+  const inputElement = useMemo<React.ReactNode>(() => {
+    if (!editEnabled || isReadOnly) return null;
 
-    if (
-      editEnabled &&
-      !readOnlyResult &&
-      typeof inputRef.focus === "function"
-    ) {
-      inputRef.focus();
+    const elem = maybeCall(treeContext.inputElement, {
+      keyName: name,
+      keyPath: propsKeyPath,
+      depth,
+      data: originalData,
+      dataType,
+      jsonFieldType: JsonFieldType.Value,
+    });
+    if (!elem) return null;
+
+    return React.cloneElement(elem, {
+      ref: inputRef,
+      defaultValue: originalData,
+    });
+  }, [
+    dataType,
+    depth,
+    editEnabled,
+    isReadOnly,
+    name,
+    originalData,
+    propsKeyPath,
+    treeContext.inputElement,
+  ]);
+
+  const editButtonElement = useMemo<React.ReactNode>(() => {
+    if (!editEnabled || isReadOnly) return null;
+    if (!treeContext.editButtonElement) return null;
+
+    return React.cloneElement(treeContext.editButtonElement, {
+      onClick: () => setEditEnabled(true),
+    });
+  }, [editEnabled, isReadOnly, treeContext.editButtonElement]);
+
+  const cancelButtonElement = useMemo<React.ReactNode>(() => {
+    if (!editEnabled || isReadOnly) return null;
+    if (!treeContext.cancelButtonElement) return null;
+
+    return React.cloneElement(treeContext.cancelButtonElement, {
+      onClick: () => setEditEnabled(false),
+    });
+  }, [editEnabled, isReadOnly, treeContext.cancelButtonElement]);
+
+  const valueElement = useMemo<React.ReactNode>(() => {
+    if (editEnabled && !isReadOnly) {
+      // Is open for editing
+      return (
+        <span className="rejt-edit-form" style={style?.editForm}>
+          {inputElement} {cancelButtonElement}
+          {editButtonElement}
+        </span>
+      );
     }
-  }
-
-  handleEdit() {
-    const {
-      handleUpdateValue,
-      originalValue,
-      logger,
-      onSubmitValueParser,
-      keyPath,
-    } = this.props;
-    const { inputRef, name, deep } = this.state;
-
-    const newValue = onSubmitValueParser(
-      true,
-      keyPath,
-      deep,
-      name,
-      inputRef.value
+    // Not open for editing
+    return (
+      <span
+        className="rejt-value"
+        style={style?.value}
+        onClick={isReadOnly ? undefined : () => setEditEnabled(true)}
+      >
+        {dataString}
+      </span>
     );
+  }, [
+    cancelButtonElement,
+    dataString,
+    editButtonElement,
+    editEnabled,
+    inputElement,
+    isReadOnly,
+    style?.editForm,
+    style?.value,
+  ]);
+
+  // == Effects ==
+  useEffect(() => {
+    setKeyPath([...propsKeyPath, name]);
+  }, [propsKeyPath, name]);
+
+  useEffect(() => {
+    if (editEnabled && !isReadOnly) {
+      inputRef.current?.focus();
+    }
+  }, [editEnabled, isReadOnly]);
+
+  // == Callbacks ==
+  const handleEdit = useCallback(async () => {
+    const newValue = maybeCall(treeContext.onSubmitValueParser, {
+      keyName: name,
+      keyPath,
+      depth,
+      isEditMode: true,
+      rawValue: inputRef.current?.value ?? "",
+    });
 
     const result = {
-      value: newValue,
       key: name,
+      value: newValue,
     };
 
     // Run update
-    handleUpdateValue(result)
-      .then(() => {
-        // Cancel edit mode if necessary
-        if (!isComponentWillChange(originalValue, newValue)) {
-          this.handleCancelEdit();
-        }
-      })
-      .catch(logger.error);
-  }
-
-  handleEditMode() {
-    this.setState({
-      editEnabled: true,
-    });
-  }
-
-  refInput(node) {
-    this.state.inputRef = node;
-  }
-
-  handleCancelEdit() {
-    this.setState({
-      editEnabled: false,
-    });
-  }
-
-  render() {
-    const { name, value, editEnabled, keyPath, deep } = this.state;
-    const {
-      handleRemove,
-      originalValue,
-      readOnly,
-      dataType,
-      getStyle,
-      editButtonElement,
-      cancelButtonElement,
-      inputElementGenerator,
-      minusMenuElement,
-      keyPath: comeFromKeyPath,
-    } = this.props;
-
-    const style = getStyle(name, originalValue, keyPath, deep, dataType);
-    let result = null;
-    let minusElement = null;
-    const readOnlyResult = readOnly(
-      name,
-      originalValue,
-      keyPath,
-      deep,
-      dataType
-    );
-
-    if (editEnabled && !readOnlyResult) {
-      const inputElement = inputElementGenerator(
-        inputUsageTypes.VALUE,
-        comeFromKeyPath,
-        deep,
-        name,
-        originalValue,
-        dataType
-      );
-
-      const editButtonElementLayout = React.cloneElement(editButtonElement, {
-        onClick: this.handleEdit,
-      });
-      const cancelButtonElementLayout = React.cloneElement(
-        cancelButtonElement,
-        {
-          onClick: this.handleCancelEdit,
-        }
-      );
-      const inputElementLayout = React.cloneElement(inputElement, {
-        ref: this.refInput,
-        defaultValue: originalValue,
-      });
-
-      result = (
-        <span className="rejt-edit-form" style={style.editForm}>
-          {inputElementLayout} {cancelButtonElementLayout}
-          {editButtonElementLayout}
-        </span>
-      );
-      minusElement = null;
-    } else {
-      /* eslint-disable jsx-a11y/no-static-element-interactions */
-      result = (
-        <span
-          className="rejt-value"
-          style={style.value}
-          onClick={readOnlyResult ? null : this.handleEditMode}
-        >
-          {value}
-        </span>
-      );
-      /* eslint-enable */
-      const minusMenuLayout = React.cloneElement(minusMenuElement, {
-        onClick: handleRemove,
-        className: "rejt-minus-menu",
-        style: style.minus,
-      });
-      minusElement = readOnlyResult ? null : minusMenuLayout;
+    try {
+      await treeContext.handleUpdateValue?.(result);
+    } catch (err) {
+      treeContext.logger?.error(err);
     }
 
-    const handlers = {
-      esc: this.handleCancelEdit,
-      enter: this.handleEdit,
-    };
+    // Cancel edit mode if necessary
+    if (!isComponentWillChange(originalData, newValue)) {
+      setEditEnabled(false);
+    }
+  }, [depth, keyPath, name, originalData, treeContext]);
 
-    return (
-      <HotKeys
-        className="rejt-value-node"
-        component={"li"}
-        style={style.li}
-        handlers={handlers}
-      >
-        <span className="rejt-name" style={style.name}>
-          {name} :{" "}
-        </span>
-        {result}
-        {minusElement}
-      </HotKeys>
-    );
-  }
+  // == More memos! ==
+  const handlers = useMemo(
+    () => ({
+      esc: () => setEditEnabled(false),
+      enter: handleEdit,
+    }),
+    [handleEdit]
+  );
+
+  // == Render ==
+  return (
+    <HotKeys
+      className="rejt-value-node"
+      component="li"
+      style={style?.li}
+      handlers={handlers}
+    >
+      <span className="rejt-name" style={style?.name}>
+        {name} :{" "}
+      </span>
+      {valueElement}
+      {minusElement}
+    </HotKeys>
+  );
 }
 
-// Add prop types
-JsonValue.propTypes = propTypes;
-// Add default props
-JsonValue.defaultProps = defaultProps;
-
-/* ************************************* */
-/* ********       EXPORTS       ******** */
-/* ************************************* */
 export default JsonValue;
