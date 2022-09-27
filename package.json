@@ -1,5 +1,5 @@
 {
-  "name": "react-editable-json-tree",
+  "name": "@phanabani/react-editable-json-tree",
   "version": "3.0.0",
   "description": "React Editable Json Tree",
   "source": "src/JsonTree.js",

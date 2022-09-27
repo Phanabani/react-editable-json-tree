@@ -4,94 +4,30 @@
  * Licence: See Readme
  */
 import PropTypes from "prop-types";
-/* ************************************* */
-/* ********       IMPORTS       ******** */
-/* ************************************* */
-import React, { Component } from "react";
+import React, { Component, useMemo, useState } from "react";
 import {
-  ADD_DELTA_TYPE,
-  REMOVE_DELTA_TYPE,
-  UPDATE_DELTA_TYPE,
-} from "../enums/deltaType";
+ DeltaType} from "../enums/deltaType";
 import { getObjectType, ObjectType } from "../enums/objectType";
 import type { JsonProps } from "../types/JsonComponentProps";
 import type { JsonObjectType } from "../types/JsonTypes";
+import { MinusMenuElement, PlusMenuElement } from "./defaultElements/defaultElements";
 import JsonAddValue from "./JsonAddValue";
 import JsonNode from "./JsonNode";
 
-/* ************************************* */
-/* ********      VARIABLES      ******** */
-/* ************************************* */
-// Prop types
-const propTypes = {
-  isCollapsed: PropTypes.func.isRequired,
-  onUpdate: PropTypes.func.isRequired,
-  onDeltaUpdate: PropTypes.func.isRequired,
-  readOnly: PropTypes.func.isRequired,
-  getStyle: PropTypes.func.isRequired,
-  addButtonElement: PropTypes.element,
-  cancelButtonElement: PropTypes.element,
-  editButtonElement: PropTypes.element,
-  inputElementGenerator: PropTypes.func.isRequired,
-  textareaElementGenerator: PropTypes.func.isRequired,
-  minusMenuElement: PropTypes.element,
-  plusMenuElement: PropTypes.element,
-  beforeRemoveAction: PropTypes.func,
-  beforeAddAction: PropTypes.func,
-  beforeUpdateAction: PropTypes.func,
-  logger: PropTypes.object.isRequired,
-  onSubmitValueParser: PropTypes.func.isRequired,
-};
+type Props = JsonProps & {handleRemove: () => void};
 
-interface Props extends JsonProps<JsonObjectType> {
-  handleRemove: () => void;
-  dataType?: ObjectType;
-}
+function JsonObject({name, keyPath: propKeyPath, depth, handleRemove, dataType}: Props) {
+  // == State ==
+  const [addFormVisible, setAddFormVisible] = useState<boolean>(false);
 
-// Default props
-const defaultProps = {
-  keyPath: [],
-  deep: 0,
-  minusMenuElement: <span> - </span>,
-  plusMenuElement: <span> + </span>,
-};
+  // == Memos ==
+  const keyPath = useMemo<string[]>(() => (
+    depth === -1 ? [] : [...propKeyPath, name]
+  ), []);
 
-/* ************************************* */
-/* ********      COMPONENT      ******** */
-/* ************************************* */
-class JsonObject extends Component {
-  constructor(props) {
-    super(props);
-    const keyPath = props.deep === -1 ? [] : [...props.keyPath, props.name];
-    this.state = {
-      name: props.name,
-      data: props.data,
-      keyPath,
-      deep: props.deep,
-      nextDeep: props.deep + 1,
-      collapsed: props.isCollapsed(keyPath, props.deep, props.data),
-      addFormVisible: false,
-    };
+  // == Callbacks ==
 
-    // Bind
-    this.handleCollapseMode = this.handleCollapseMode.bind(this);
-    this.handleRemoveValue = this.handleRemoveValue.bind(this);
-    this.handleAddMode = this.handleAddMode.bind(this);
-    this.handleAddValueAdd = this.handleAddValueAdd.bind(this);
-    this.handleAddValueCancel = this.handleAddValueCancel.bind(this);
-    this.handleEditValue = this.handleEditValue.bind(this);
-    this.onChildUpdate = this.onChildUpdate.bind(this);
-    this.renderCollapsed = this.renderCollapsed.bind(this);
-    this.renderNotCollapsed = this.renderNotCollapsed.bind(this);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      data: nextProps.data,
-    });
-  }
-
-  onChildUpdate(childKey, childData) {
+  const onChildUpdate = useCallback((childKey, childData) => {
     const { data, keyPath } = this.state;
     // Update data
     data[childKey] = childData;
@@ -103,7 +39,7 @@ class JsonObject extends Component {
     const { onUpdate } = this.props;
     const size = keyPath.length;
     onUpdate(keyPath[size - 1], data);
-  }
+  });
 
   handleAddMode() {
     this.setState({

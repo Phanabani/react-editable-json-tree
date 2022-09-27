@@ -3,6 +3,7 @@ import type { JsonFieldType } from "../enums/jsonFieldType";
 import type {
   Data,
   Depth,
+  KeyName,
   KeyPath,
   TreeArgs,
   TreeStyles,
@@ -24,6 +25,7 @@ type Action<T> = (
 ) => Promise<void>;
 
 export interface JsonTreeContextType {
+  // TODO check these callback types
   isCollapsed?: (args: { keyPath: KeyPath; depth: Depth }) => boolean;
   onFullyUpdate?: (args: { data: Data }) => void;
   onDeltaUpdate?: (args: TreeArgs & { oldValue: Data; newValue: Data }) => void;
@@ -34,6 +36,8 @@ export interface JsonTreeContextType {
   beforeRemoveAction?: Action<{ oldValue: Data }>;
   beforeAddAction?: Action<{ newValue: Data }>;
   beforeUpdateAction?: Action<{ oldValue: Data; newValue: Data }>;
+  handleRemove?: () => Promise<void>;
+  handleUpdateValue?: (data: { key: KeyName; value: Data }) => Promise<void>;
 
   logger?: { error: (reason: unknown) => void };
 
@@ -50,6 +54,7 @@ export const JsonTreeContext = React.createContext<JsonTreeContextType>({
   isCollapsed: undefined,
   onFullyUpdate: undefined,
   onDeltaUpdate: undefined,
+  // TODO rename to isReadOnly
   readOnly: undefined,
   getStyle: undefined,
   onSubmitValueParser: undefined,
@@ -57,6 +62,8 @@ export const JsonTreeContext = React.createContext<JsonTreeContextType>({
   beforeRemoveAction: undefined,
   beforeAddAction: undefined,
   beforeUpdateAction: undefined,
+  handleRemove: undefined,
+  handleUpdateValue: undefined,
 
   logger: undefined,
 

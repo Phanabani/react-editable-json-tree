@@ -4,6 +4,10 @@
  * Licence: See Readme
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  MinusMenuElement,
+  PlusMenuElement,
+} from "./components/defaultElements/defaultElements";
 import JsonNode from "./components/JsonNode";
 import * as styles from "./constants/styles";
 import type {
@@ -62,8 +66,8 @@ function JsonTree({
   editButtonElement,
   inputElement = <input />,
   textareaElement = <textarea />,
-  minusMenuElement,
-  plusMenuElement,
+  minusMenuElement = MinusMenuElement,
+  plusMenuElement = PlusMenuElement,
 }: Props) {
   // == State ==
   const [data, setData] = useState<Data>(propsData);
