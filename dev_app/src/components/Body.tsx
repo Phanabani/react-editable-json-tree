@@ -148,8 +148,11 @@ function Body() {
         setReadOnlyTreeProp(false);
       } else {
         // Reapply the "child" readonly fields
-        if (checkedReadOnlyBoolean) setReadOnlyTreePropWithBoolean(true);
-        else if (checkedReadOnlyFunction) setReadOnlyTreePropWithFunction(true);
+        if (checkedReadOnlyBoolean) {
+          setReadOnlyTreePropWithBoolean(true);
+        } else if (checkedReadOnlyFunction) {
+          setReadOnlyTreePropWithFunction(true);
+        }
       }
     },
     [
