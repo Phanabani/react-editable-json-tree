@@ -113,13 +113,6 @@ class JsonValue extends Component {
     }
 
     refInput(node) {
-        if (node === null) {
-            throw new Error(
-                'Your input element must be able to have a ref attached to '
-                + 'it. If it\'s a custom element (not a DOM element), you '
-                + 'need to use ref forwarding.',
-            );
-        }
         this.state.inputRef = node;
     }
 
